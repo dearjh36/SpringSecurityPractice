@@ -27,8 +27,7 @@ public class User implements UserDetails {
     private String password;
     private String authority;
 
-    public User(Long id, String username, String password, String authority) {
-        this.id = id;
+    public User(String username, String password, String authority) {
         this.username = username;
         this.password = password;
         this.authority = authority;
