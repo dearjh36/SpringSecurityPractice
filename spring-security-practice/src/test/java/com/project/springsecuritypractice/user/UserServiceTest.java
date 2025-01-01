@@ -66,6 +66,18 @@ class UserServiceTest {
 
     }
 
-    
+    @Test
+    void findByUsername(){
+        // Given
+        userRepository.save(new User("user1","user1","ROLE_USER"));
+
+        // When
+        User user = userService.findByUsername("user1");
+
+        // Then
+        then(user.getId()).isNotNull();
+
+    }
+
 
 }
