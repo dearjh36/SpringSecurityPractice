@@ -17,9 +17,9 @@ import org.springframework.web.context.WebApplicationContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -106,6 +106,40 @@ class NoteControllerTest {
         ).andExpect(redirectedUrl("note")).andExpect(status().is3xxRedirection());
     }
 
-    
+    @Test
+    void deleteNote_인증없음() throws Exception{
+        Note note = noteRepository.save(new Note("제목", "내용", user));
+        mockMvc.perform(
+                delete("/note?id=" + note.getId()).with(csrf())
+        ).andExpect(redirectedUrlPattern("**/login"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithUserDetails(
+            value = "user1",
+            userDetailsServiceBeanName = "userDetailsService",
+            setupBefore = TestExecutionEvent.TEST_EXECUTION
+    ) void deleteNote_유저인증있음() throws Exception {
+        Note note = noteRepository.save(new Note("제목", "내용", user));
+        mockMvc.perform(
+                delete("/note?id=" + note.getId()).with(csrf())
+        ).andExpect(redirectedUrl("note"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithUserDetails(
+            value = "admin1",
+            userDetailsServiceBeanName = "userDetailsService",
+            setupBefore = TestExecutionEvent.TEST_EXECUTION
+    )
+    void deleteNote_어드민인증있음() throws Exception{
+        Note note = noteRepository.save(new Note("제목","내용",user));
+        mockMvc.perform(
+                delete("/note?id=" + note.getId()).with(csrf()).with(user(admin))
+        ).andExpect(status().isForbidden());
+    }
+    // admin 은 note 삭제 권한 없음
 
 }
